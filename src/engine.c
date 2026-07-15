@@ -164,8 +164,16 @@ void backward(Value* this) {
         }
         p = p->next;
     }
-    free_value_node(topo);
-    free_value_node(visited);
+    while (topo != NULL) {
+        ValueNode* next = topo->next;
+        free(topo);
+        topo = next;
+    }
+    while (visited != NULL) {
+        ValueNode* next = visited->next;
+        free(visited);
+        visited = next;
+    }
 }
 
 /*

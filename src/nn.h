@@ -2,6 +2,7 @@
 #define NN_H
 
 #include "engine.h"
+#include <stdbool.h>
 
 typedef struct Neuron Neuron;
 typedef struct Layer Layer;

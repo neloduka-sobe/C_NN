@@ -38,7 +38,7 @@ Neuron* create_neuron(int nin, bool nonlin) {
 * Takes: Pointer to a neuron, pointer to a value to be put into the neuron
 * Returns: Value with the evaluated neuron
 */
-Value call_neuron(Neuron* neuron, ValueNode* x) {
+Value* call_neuron(Neuron* neuron, ValueNode* x) {
     Value* act = neuron->b;
     ValueNode* w_node = neuron->w;
     ValueNode* input_node = x;
@@ -48,9 +48,9 @@ Value call_neuron(Neuron* neuron, ValueNode* x) {
         input_node = input_node->next;
     }
     if (neuron->nonlin) {
-        return *relu(act);
+        return relu(act);
     } else {
-        return *act;
+        return act;
     }
 }
 
@@ -94,17 +94,17 @@ Layer* create_layer(int nin, int nout, bool nonlin) {
 /*
 * Call the layer
 * Takes: Layer pointer, value for which to evaluate, size of the input
-* Returns: Value returned by evaluation of the layer
+* Returns: Linked list of Values, one per neuron in the layer
 */
-Value call_layer(Layer* layer, ValueNode* x, int x_size) {
-    Value* ret = create_value(0.0, NULL);
+ValueNode* call_layer(Layer* layer, ValueNode* x, int x_size) {
+    ValueNode* outputs = NULL;
     NeuronNode* neuron_node = layer->neurons;
     while (neuron_node != NULL) {
-        Value neuron_out = call_neuron(neuron_node->value, x);
-        ret = add(ret, &neuron_out);
+        Value* neuron_out = call_neuron(neuron_node->value, x);
+        outputs = add_child(outputs, neuron_out);
         neuron_node = neuron_node->next;
     }
-    return *ret;
+    return outputs;
 }
 
 /*
@@ -155,17 +155,14 @@ MLP* create_MLP(int nin, int* nouts, int n_layers) {
 * Takes: Pointer to the MLP, Value for which to evaluate, and size of the input
 * Returns: Value for the MLP evaluated for x
 */
-Value call_MLP(MLP* mlp, ValueNode* x, int x_size) {
+Value* call_MLP(MLP* mlp, ValueNode* x, int x_size) {
     ValueNode* input = x;
     LayerNode* layer_node = mlp->layers;
     while (layer_node != NULL) {
-        Value layer_out = call_layer(layer_node->value, input, layer_node->value->nout);
-        input = add_child(NULL, &layer_out);
+        input = call_layer(layer_node->value, input, layer_node->value->nout);
         layer_node = layer_node->next;
     }
-    Value result = *input->value;
-    free_value_node(input);
-    return result;
+    return input->value;
 }
 
 /*

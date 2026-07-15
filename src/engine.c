@@ -279,7 +279,7 @@ void free_value(Value* v) {
     assert(v);
     ValueNode* p = v->children;
     while (p != NULL) {
-        free_value_node(p);
+        p = free_value_node(p);
     }
     free(v);
 }
